@@ -2,10 +2,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import json, os, uuid
 
+# Auto-detect backend folder regardless of case
+BACKEND_FOLDER = "backend" if os.path.exists("backend") else "Backend"
+
 app = FastAPI()
 
-USERS_FILE = "backend/users.json"
-MEMORY_FILE = "backend/memory.json"
+USERS_FILE = os.path.join(BACKEND_FOLDER, "users.json")
+MEMORY_FILE = os.path.join(BACKEND_FOLDER, "memory.json")
 
 class InputData(BaseModel):
     text: str
