@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI SaaS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>AI SaaS Platform</h1>
+
+  <button onclick="signup()">Create Account</button><br><br>
+
+  <input id="inputBox" type="text" placeholder="Type something">
+  <button onclick="sendRequest()">Send</button>
+  <button onclick="startVoice()">🎤 Talk</button>
+
+  <br><br>
+
+  <input type="file" accept="image/*" onchange="readImage(event)">
+
+  <pre id="output"></pre>
+
+  <script src="script.js"></script>
+</body>
+</html>
