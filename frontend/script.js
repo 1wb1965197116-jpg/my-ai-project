@@ -1,50 +1,138 @@
+// 🔗 BACKEND URL (YOUR LIVE RENDER URL)
+const backendUrl = "https://my-ai-project-1-0hu7.onrender.com";
+
+// 🔑 Load API Key
 let API_KEY = localStorage.getItem("api_key");
-const backendUrl = "https://YOUR_BACKEND_URL";
 
+// ==========================
+// 🧠 SIGNUP (GET API KEY)
+// ==========================
 async function signup() {
-  const res = await fetch(backendUrl + "/signup", { method: "POST" });
-  const data = await res.json();
+  try {
+    const res = await fetch(`${backendUrl}/signup`, {
+      method: "POST"
+    });
 
-  API_KEY = data.api_key;
-  localStorage.setItem("api_key", API_KEY);
+    const data = await res.json();
 
-  alert("API Key Created!");
+    if (data.api_key) {
+      API_KEY = data.api_key;
+      localStorage.setItem("api_key", API_KEY);
+      alert("✅ API Key Created!");
+    } else {
+      throw new Error("No API key returned");
+    }
+
+  } catch (err) {
+    alert("❌ Signup failed");
+    console.error(err);
+  }
 }
 
-async function sendRequest(textInput=null) {
-  const text = textInput || document.getElementById('inputBox').value;
+// ==========================
+// 🚀 SEND REQUEST TO AI
+// ==========================
+async function sendRequest(textInput = null) {
+  const text = textInput || document.getElementById("inputBox").value;
 
-  const res = await fetch(backendUrl + "/predict", {
-    method: "POST",
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ text, api_key: API_KEY })
-  });
+  if (!API_KEY) {
+    alert("⚠️ Please click 'Create Account' first");
+    return;
+  }
 
-  const data = await res.json();
-  document.getElementById("output").textContent =
-    JSON.stringify(data, null, 2);
+  if (!text) {
+    alert("⚠️ Enter some text");
+    return;
+  }
 
-  speak(data.response || "Error");
+  try {
+    const res = await fetch(`${backendUrl}/predict`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        text: text,
+        api_key: API_KEY
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    document.getElementById("output").textContent =
+      JSON.stringify(data, null, 2);
+
+    speak(data.response);
+
+  } catch (err) {
+    document.getElementById("output").textContent =
+      "❌ Error: " + err.message;
+
+    console.error(err);
+  }
 }
 
-// 🔊 Voice output
+// ==========================
+// 🔊 TEXT TO SPEECH
+// ==========================
 function speak(text) {
+  if (!text) return;
+
   const speech = new SpeechSynthesisUtterance(text);
-  speechSynthesis.speak(speech);
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  window.speechSynthesis.cancel(); // stop previous speech
+  window.speechSynthesis.speak(speech);
 }
 
-// 🎤 Voice input
+// ==========================
+// 🎤 VOICE INPUT
+// ==========================
 function startVoice() {
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.onresult = function(event) {
-    const text = event.results[0][0].transcript;
-    sendRequest(text);
-  };
-  recognition.start();
+  try {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("❌ Voice not supported on this device");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.onstart = () => {
+      console.log("🎤 Listening...");
+    };
+
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      sendRequest(text);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Voice error:", event.error);
+    };
+
+    recognition.start();
+
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-// 📸 Image handler (placeholder)
+// ==========================
+// 📸 IMAGE INPUT (PLACEHOLDER)
+// ==========================
 function readImage(event) {
-  document.getElementById('output').textContent =
-    "Image loaded (OCR can be added later)";
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  document.getElementById("output").textContent =
+    "📸 Image loaded (OCR can be added next)";
 }
