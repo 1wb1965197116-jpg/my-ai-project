@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import json, os, uuid
 
@@ -6,6 +7,10 @@ import json, os, uuid
 BACKEND_FOLDER = "backend" if os.path.exists("backend") else "Backend"
 
 app = FastAPI()
+# Set FRONTEND_ORIGINS to comma-separated trusted frontend origins.
+origins = [x.strip() for x in os.getenv("FRONTEND_ORIGINS", "").split(",") if x.strip()]
+if origins:
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["POST"], allow_headers=["Content-Type"])
 
 USERS_FILE = os.path.join(BACKEND_FOLDER, "users.json")
 MEMORY_FILE = os.path.join(BACKEND_FOLDER, "memory.json")
